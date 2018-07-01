@@ -16,14 +16,13 @@ public class OnSwipeTouchListener implements OnTouchListener {
     private static final float SLOW_FACTOR = 4.5f;
 
     public enum DragDirection {Right, Up, Left, Down}
-
     private DragDirection direction = DragDirection.Up;
-    private float dragThreshold = 0.5f;
 
     private final GestureDetector gestureDetector;
 
     private float[] steps;
     private int csIter = 0;
+    private float dragThreshold = 0.5f;
     private float currentStep = 0;
     private float lastPosition;
     private float startPosition;
@@ -66,7 +65,7 @@ public class OnSwipeTouchListener implements OnTouchListener {
         switch( event.getAction() ) {
             case MotionEvent.ACTION_DOWN:
                 if( isDragging ) {
-                    if( flingAnimation.isRunning() ) {
+                    if( flingAnimation != null && flingAnimation.isRunning() ) {
                         flingAnimation.cancel();
                         startEvent = MotionEvent.obtain( event );
                     }
