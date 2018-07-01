@@ -2,10 +2,6 @@
 
 Simple touch listener for swiping gestures.
 
-## Description
-
-An in-depth paragraph about your project and overview of use.
-
 ![presentation gif](/screenshots/main.gif)
 
 ## Getting Started
@@ -67,9 +63,7 @@ view.setOnTouchListener( listener );
 
 ## Authors
 
-Contributors names and contact info
-
-ex. [@colorgreen](https://github.com/colorgreen)
+[@colorgreen](https://github.com/colorgreen)
 
 ## Version History
 
