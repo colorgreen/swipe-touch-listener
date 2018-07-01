@@ -1,12 +1,9 @@
 package com.colorgreen.swiper;
 
 
-import android.content.Context;
 import android.support.animation.DynamicAnimation;
 import android.support.animation.FlingAnimation;
 import android.support.animation.FloatValueHolder;
-import android.view.GestureDetector;
-import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -16,9 +13,8 @@ public class OnSwipeTouchListener implements OnTouchListener {
     private static final float SLOW_FACTOR = 4.5f;
 
     public enum DragDirection {Right, Up, Left, Down}
-    private DragDirection direction = DragDirection.Up;
 
-    private final GestureDetector gestureDetector;
+    private DragDirection direction = DragDirection.Down;
 
     private float[] steps;
     private int csIter = 0;
@@ -35,8 +31,19 @@ public class OnSwipeTouchListener implements OnTouchListener {
 
     private FlingAnimation flingAnimation;
 
-    public OnSwipeTouchListener( Context ctx ) {
-        gestureDetector = new GestureDetector( ctx, new GestureListener() );
+    public OnSwipeTouchListener() {
+    }
+
+    /**
+     * @param direction default drag is DragDirection.Down
+     * @param steps
+     * @param dragThreshold default threshold is 0.5f
+     */
+    public OnSwipeTouchListener( DragDirection direction, float[] steps, float dragThreshold ) {
+        this.direction = direction;
+        this.steps = steps;
+        this.dragThreshold = dragThreshold;
+        checkSteps( steps );
     }
 
     public void attachToView( View v ) {
@@ -64,75 +71,123 @@ public class OnSwipeTouchListener implements OnTouchListener {
 
         switch( event.getAction() ) {
             case MotionEvent.ACTION_DOWN:
-                if( isDragging ) {
-                    if( flingAnimation != null && flingAnimation.isRunning() ) {
-                        flingAnimation.cancel();
-                        startEvent = MotionEvent.obtain( event );
-                    }
-                } else {
-                    onDragStart( currentStep );
-                    currentStep = steps[csIter];
-                    startEvent = MotionEvent.obtain( event );
-                    isDragging = true;
-                }
-                startPosition = lastPosition;
+                startDrag( event );
+                break;
+            case MotionEvent.ACTION_MOVE:
+                onMove( startEvent, event );
                 break;
             case MotionEvent.ACTION_UP:
                 endDrag( startEvent, event );
                 break;
         }
 
-        return gestureDetector.onTouchEvent( event );
+        return true;
     }
 
-    private final class GestureListener extends SimpleOnGestureListener {
+    public void onDragStart( float val ) {}
 
-        @Override
-        public boolean onScroll( MotionEvent e1, MotionEvent e2, float distanceX, float distanceY ) {
-            float diff = getDiff( e1, e2 ) + startPosition;
+    public void onDrag( float val ) {}
 
-            if( distanceX == 0 || distanceY == 0 )
-                return false;
+    public void onDragEnd( float val ) {}
 
-            if( direction == DragDirection.Left || direction == DragDirection.Up ) {
-                if( csIter + 1 == steps.length ) {
-                    if( steps[csIter - 1] >= diff && diff >= steps[steps.length - 1] ) {
-                        onDrag( diff );
-                        lastPosition = diff;
-                    }
-                } else if( csIter == 0 ) {
-                    if( steps[0] >= diff && diff >= steps[csIter + 1] ) {
-                        onDrag( diff );
-                        lastPosition = diff;
-                    }
-                } else {
+    /**
+     * Set values, which your drag respects. For direction Left and Up value have to be in descending
+     * order. For direction Right and Down values have to be ascending.
+     * Example for direction left: [ 0, -300, -600 ]
+     * Watch out for using etc. view.getX() function in onCreate() of activity. It will propably return 0.
+     * Use view.getViewTreeObserver() to obtain axis properties.
+     * @see <a href="https://stackoverflow.com/questions/3591784/views-getwidth-and-getheight-returns-0">stackoverflow.com</a>
+     * @param steps Array in ascending or descending order, depends of direction.
+     */
+    public void setSteps( float[] steps ) {
+        checkSteps( steps );
+        this.steps = steps;
+    }
 
-                    if( steps[csIter - 1] >= diff && diff >= steps[csIter + 1] ) {
-                        onDrag( diff );
-                        lastPosition = diff;
-                    }
+    public DragDirection getDirection() {
+        return direction;
+    }
+
+    public void setDirection( DragDirection direction ) {
+        this.direction = direction;
+        if( this.steps != null )
+            checkSteps( this.steps );
+    }
+
+    public float getDragThreshold() {
+        return dragThreshold;
+    }
+
+    public boolean isDragging() {
+        return isDragging;
+    }
+
+    public boolean isExtended(){
+        return csIter > 0;
+    }
+
+    public int getStep(){
+        return csIter;
+    }
+
+    ////////////////////////////////// PRIVATE FUNCTION ////////////////////////////////////////////
+
+
+
+    private void startDrag( MotionEvent event ) {
+        if( isDragging ) {
+            if( flingAnimation != null && flingAnimation.isRunning() ) {
+                flingAnimation.cancel();
+                startEvent = MotionEvent.obtain( event );
+            }
+        } else {
+            onDragStart( currentStep );
+            currentStep = steps[csIter];
+            startEvent = MotionEvent.obtain( event );
+            isDragging = true;
+        }
+        startPosition = lastPosition;
+    }
+
+    private void onMove( MotionEvent e1, MotionEvent e2 ) {
+        float diff = getDiff( e1, e2 ) + startPosition;
+
+        if( direction == DragDirection.Left || direction == DragDirection.Up ) {
+            if( csIter + 1 == steps.length ) {
+                if( steps[csIter - 1] >= diff && diff >= steps[steps.length - 1] ) {
+                    onDrag( diff );
+                    lastPosition = diff;
+                }
+            } else if( csIter == 0 ) {
+                if( steps[0] >= diff && diff >= steps[csIter + 1] ) {
+                    onDrag( diff );
+                    lastPosition = diff;
                 }
             } else {
-                if( csIter + 1 == steps.length ) {
-                    if( steps[csIter - 1] <= diff && diff <= steps[steps.length - 1] ) {
-                        onDrag( diff );
-                        lastPosition = diff;
-                    }
-                } else if( csIter == 0 ) {
-                    if( steps[0] <= diff && diff <= steps[csIter + 1] ) {
-                        onDrag( diff );
-                        lastPosition = diff;
-                    }
-                } else {
 
-                    if( steps[csIter - 1] <= diff && diff <= steps[csIter + 1] ) {
-                        onDrag( diff );
-                        lastPosition = diff;
-                    }
+                if( steps[csIter - 1] >= diff && diff >= steps[csIter + 1] ) {
+                    onDrag( diff );
+                    lastPosition = diff;
                 }
             }
+        } else {
+            if( csIter + 1 == steps.length ) {
+                if( steps[csIter - 1] <= diff && diff <= steps[steps.length - 1] ) {
+                    onDrag( diff );
+                    lastPosition = diff;
+                }
+            } else if( csIter == 0 ) {
+                if( steps[0] <= diff && diff <= steps[csIter + 1] ) {
+                    onDrag( diff );
+                    lastPosition = diff;
+                }
+            } else {
 
-            return true;
+                if( steps[csIter - 1] <= diff && diff <= steps[csIter + 1] ) {
+                    onDrag( diff );
+                    lastPosition = diff;
+                }
+            }
         }
     }
 
@@ -232,44 +287,6 @@ public class OnSwipeTouchListener implements OnTouchListener {
         flingAnimation.start();
     }
 
-    public void onDragStart( float val ) {
-    }
-
-    public void onDrag( float val ) {
-    }
-
-    public void onDragEnd( float val ) {
-    }
-
-    /**
-     * Set values, which your drag respects. For direction Left and Up value have to be in descending
-     * order. For direction Right and Down values have to be ascending.
-     * Example for direction left: [ 0, -300, -600 ]
-     * Watch out for using etc. view.getX() function in onCreate() of activity. It will propably return 0.
-     * Use view.getViewTreeObserver() to obtain axis properties.
-     * See more: https://stackoverflow.com/questions/32400\11/view-getx-and-gety-return-0-0-after-they-have-been-added-to-the-activity
-     * @param steps Array in ascending or descending order, depends of direction.
-     */
-    public void setSteps( float[] steps ) {
-        checkSteps( steps );
-        this.steps = steps;
-    }
-
-    public DragDirection getDirection() {
-        return direction;
-    }
-
-    public void setDirection( DragDirection direction ) {
-        this.direction = direction;
-        if( this.steps != null )
-            checkSteps( this.steps );
-    }
-
-    public float getDragThreshold() {
-        return dragThreshold;
-    }
-
-    ////////////////////////////////// PRIVATE FUNCTION ////////////////////////////////////////////
 
     private float getDiff( MotionEvent e1, MotionEvent e2 ) {
         if( direction == DragDirection.Up || direction == DragDirection.Down )
@@ -288,7 +305,7 @@ public class OnSwipeTouchListener implements OnTouchListener {
         if( steps.length < 2 )
             throw new RuntimeException( "There have to be minimum two steps" );
 
-        if( steps[0] == steps[steps.length-1] )
+        if( steps[0] == steps[steps.length - 1] )
             throw new RuntimeException( "First and last step are the same. See setSteps() documentation for more details" );
 
         if( direction == DragDirection.Down || direction == DragDirection.Right ) {
