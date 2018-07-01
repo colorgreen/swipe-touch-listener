@@ -16,7 +16,7 @@ public class SwipeAction {
     private float[] steps;
     private int csIter = 0;
     private float dragThreshold = 0.5f;
-    private float currentStep = 0;
+    private float currentStep;
     private float lastPosition;
     private float startPosition;
 
@@ -37,9 +37,8 @@ public class SwipeAction {
      */
     public SwipeAction( DragDirection direction, float[] steps, float dragThreshold ) {
         this.direction = direction;
-        this.steps = steps;
+        setSteps( steps );
         this.dragThreshold = dragThreshold;
-        checkSteps( steps );
     }
 
     public boolean onTouch( View v, MotionEvent event ) {
@@ -93,6 +92,7 @@ public class SwipeAction {
     public void setSteps( float[] steps ) {
         checkSteps( steps );
         this.steps = steps;
+        currentStep = lastPosition = steps[csIter];
     }
 
     public DragDirection getDirection() {

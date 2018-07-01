@@ -1,21 +1,14 @@
 package com.colorgreen.swiping;
 
-import android.content.res.Resources;
 import android.graphics.Color;
-import android.support.graphics.drawable.ArgbEvaluator;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
-import android.util.Log;
-import android.view.View;
 import android.view.ViewTreeObserver;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.colorgreen.swiper.OnSwipeTouchListener;
 import com.colorgreen.swiper.SwipeAction;
-import com.colorgreen.swiping.R;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -71,9 +64,7 @@ public class MainActivity extends AppCompatActivity {
                 bottombar.getViewTreeObserver().removeOnGlobalLayoutListener( this );
 
                 int targetHeight = mainLayout.getHeight();
-                final int startBarHeight = targetHeight - dpToPx( 50 );
-
-                bottombar.setY( startBarHeight );
+                bottombar.setY( targetHeight );
 
                 final SwipeAction swipeAction = new SwipeAction() {
                     @Override
@@ -84,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
 
                 swipeAction.setDirection( SwipeAction.DragDirection.Up );
                 swipeAction.setDragThreshold( 0.2f );
-                swipeAction.setSteps( new float[]{ startBarHeight, startBarHeight - targetHeight * 0.7f, 0 } );
+                swipeAction.setSteps( new float[]{ targetHeight, targetHeight - targetHeight * 0.7f, 0 } );
 
                 listener.addAction( swipeAction );
             }
@@ -94,12 +85,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    public static int dpToPx( int dp ) {
-        DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
-        float px = dp * ( metrics.densityDpi / 160f );
-        return Math.round( px );
-    }
 
     private float interpolate( float a, float b, float proportion ) {
         return ( a + ( ( b - a ) * proportion ) );

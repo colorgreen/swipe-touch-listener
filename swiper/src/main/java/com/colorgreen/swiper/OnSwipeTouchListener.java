@@ -1,11 +1,7 @@
 package com.colorgreen.swiper;
 
 
-import android.support.animation.DynamicAnimation;
-import android.support.animation.FlingAnimation;
-import android.support.animation.FloatValueHolder;
 import android.view.MotionEvent;
-import android.view.VelocityTracker;
 import android.view.View;
 import android.view.View.OnTouchListener;
 
