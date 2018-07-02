@@ -149,7 +149,7 @@ public class SwipeAction {
 
     private void onMove( MotionEvent e1, MotionEvent e2 ) {
         final float diff = getDiff( e1, e2 ) + startPosition;
-        final float friction = Math.abs( (steps[steps.length-1]-steps[0])/diff);
+        float friction = Math.abs( (lastPosition-steps[0])/(steps[steps.length-1]-steps[0]));
 
         if( direction == DragDirection.Left || direction == DragDirection.Up ) {
             if( csIter + 1 == steps.length ) {
@@ -254,8 +254,6 @@ public class SwipeAction {
         final float velocity = calculateVelocity( lastPosition + diff / SLOW_FACTOR );
         final float nextStep = getNextStep( lastPosition + velocity / SLOW_FACTOR );
 
-        final float friction =  Math.abs((steps[steps.length-1]-steps[0])/diff);
-
         FloatValueHolder floatValueHolder = new FloatValueHolder( lastPosition );
         flingAnimation = new FlingAnimation( floatValueHolder )
                 .setStartVelocity( velocity )
@@ -264,6 +262,7 @@ public class SwipeAction {
                     @Override
                     public void onAnimationUpdate( DynamicAnimation animation, float value, float velocity ) {
                         lastPosition = value;
+                        float friction = Math.abs( (lastPosition-steps[0])/(steps[steps.length-1]-steps[0]));
                         onDrag( value, friction  );
                     }
                 } )
@@ -271,6 +270,7 @@ public class SwipeAction {
                     @Override
                     public void onAnimationEnd( DynamicAnimation animation, boolean canceled, float value, float velocity ) {
                         lastPosition = value;
+                        float friction = Math.abs( (lastPosition-steps[0])/(steps[steps.length-1]-steps[0]));
                         onDrag( value, friction  );
 
                         if( !canceled ) {

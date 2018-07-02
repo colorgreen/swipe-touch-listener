@@ -3,6 +3,7 @@ package com.colorgreen.swiping;
 import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ViewTreeObserver;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -47,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onDrag( float val, float friction ) {
                         bar.setLayoutParams( new RelativeLayout.LayoutParams( bar.getWidth(), (int) val ) );
                         bar.setBackgroundColor( interpolateColor( lightBlue, darkBlue, val / targetHeight ) );
+                        Log.d("driction", ""+friction);
                     }
                 };
 
