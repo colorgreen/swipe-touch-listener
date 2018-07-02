@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
 
                 SwipeAction swipeAction = new SwipeAction() {
                     @Override
-                    public void onDrag( float val ) {
+                    public void onDrag( float val, float friction ) {
                         bar.setLayoutParams( new RelativeLayout.LayoutParams( bar.getWidth(), (int) val ) );
                         bar.setBackgroundColor( interpolateColor( lightBlue, darkBlue, val / targetHeight ) );
                     }
@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
 
                 final SwipeAction swipeAction = new SwipeAction() {
                     @Override
-                    public void onDrag( float val ) {
+                    public void onDrag( float val, float friction ) {
                         bottombar.setY( val );
                     }
                 };

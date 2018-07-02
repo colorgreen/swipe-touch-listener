@@ -74,11 +74,11 @@ public class SwipeAction {
         this.dragThreshold = dragThreshold;
     }
 
-    public void onDragStart( float val ) {}
+    public void onDragStart( float val, float totalFriction ) {}
 
-    public void onDrag( float val ) {}
+    public void onDrag( float val, float totalFriction ) {}
 
-    public void onDragEnd( float val ) {}
+    public void onDragEnd( float val, float totalFriction ) {}
 
     /**
      * Set values, which your drag respects. For direction Left and Up value have to be in descending
@@ -139,7 +139,7 @@ public class SwipeAction {
                 startEvent = MotionEvent.obtain( event );
             }
         } else {
-            onDragStart( currentStep );
+            onDragStart( currentStep, 0 );
             currentStep = steps[csIter];
             startEvent = MotionEvent.obtain( event );
             isDragging = true;
@@ -148,41 +148,42 @@ public class SwipeAction {
     }
 
     private void onMove( MotionEvent e1, MotionEvent e2 ) {
-        float diff = getDiff( e1, e2 ) + startPosition;
+        final float diff = getDiff( e1, e2 ) + startPosition;
+        final float friction = (steps[steps.length-1]-steps[0])/diff;
 
         if( direction == DragDirection.Left || direction == DragDirection.Up ) {
             if( csIter + 1 == steps.length ) {
                 if( steps[csIter - 1] >= diff && diff >= steps[steps.length - 1] ) {
-                    onDrag( diff );
+                    onDrag( diff, friction );
                     lastPosition = diff;
                 }
             } else if( csIter == 0 ) {
                 if( steps[0] >= diff && diff >= steps[csIter + 1] ) {
-                    onDrag( diff );
+                    onDrag( diff, friction  );
                     lastPosition = diff;
                 }
             } else {
 
                 if( steps[csIter - 1] >= diff && diff >= steps[csIter + 1] ) {
-                    onDrag( diff );
+                    onDrag( diff, friction  );
                     lastPosition = diff;
                 }
             }
         } else {
             if( csIter + 1 == steps.length ) {
                 if( steps[csIter - 1] <= diff && diff <= steps[steps.length - 1] ) {
-                    onDrag( diff );
+                    onDrag( diff, friction  );
                     lastPosition = diff;
                 }
             } else if( csIter == 0 ) {
                 if( steps[0] <= diff && diff <= steps[csIter + 1] ) {
-                    onDrag( diff );
+                    onDrag( diff, friction  );
                     lastPosition = diff;
                 }
             } else {
 
                 if( steps[csIter - 1] <= diff && diff <= steps[csIter + 1] ) {
-                    onDrag( diff );
+                    onDrag( diff, friction  );
                     lastPosition = diff;
                 }
             }
@@ -253,6 +254,8 @@ public class SwipeAction {
         final float velocity = calculateVelocity( lastPosition + diff / SLOW_FACTOR );
         final float nextStep = getNextStep( lastPosition + velocity / SLOW_FACTOR );
 
+        final float friction = (steps[steps.length-1]-steps[0])/diff;
+
         FloatValueHolder floatValueHolder = new FloatValueHolder( lastPosition );
         flingAnimation = new FlingAnimation( floatValueHolder )
                 .setStartVelocity( velocity )
@@ -261,19 +264,19 @@ public class SwipeAction {
                     @Override
                     public void onAnimationUpdate( DynamicAnimation animation, float value, float velocity ) {
                         lastPosition = value;
-                        onDrag( value );
+                        onDrag( value, friction  );
                     }
                 } )
                 .addEndListener( new DynamicAnimation.OnAnimationEndListener() {
                     @Override
                     public void onAnimationEnd( DynamicAnimation animation, boolean canceled, float value, float velocity ) {
                         lastPosition = value;
-                        onDrag( value );
+                        onDrag( value, friction  );
 
                         if( !canceled ) {
                             csIter = getStepIndex( nextStep );
                             isDragging = false;
-                            onDragEnd( nextStep );
+                            onDragEnd( nextStep, 1 );
                         }
                     }
                 } );
