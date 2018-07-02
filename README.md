@@ -67,5 +67,7 @@ view.setOnTouchListener( listener );
 
 ## Version History
 
+* v1.1
+    * Added friction in onDrag
 * v1.0
     * Initial Release
