@@ -47,13 +47,16 @@ public class MainActivity extends AppCompatActivity {
             public void onGlobalLayout() {
                 bar.getViewTreeObserver().removeOnGlobalLayoutListener( this );
 
-                int startBarHeight = bar.getHeight();
+                // for drawing layouts over buttons
+                bar.setZ(10);
+                bottombar.setZ(10);
+
                 final int targetHeight = mainLayout.getHeight();
 
                 final SwipeAction swipeAction = new SwipeAction();
                 swipeAction.setDirection( SwipeAction.DragDirection.Down );
                 swipeAction.setDragThreshold( 0.4f );
-                swipeAction.setSteps( new float[]{ startBarHeight, targetHeight * 0.3f, targetHeight } );
+                swipeAction.setSteps( new float[]{ 0, targetHeight * 0.3f, targetHeight } );
 
                 bottombar.setY( targetHeight );
                 final SwipeAction bottomSwipeAction = new SwipeAction();
@@ -63,9 +66,7 @@ public class MainActivity extends AppCompatActivity {
 
                 bottomSwipeAction.setSwipeActionListener( new SwipeActionListener() {
                     @Override
-                    public void onDragStart( float val, float totalFriction ) {
-
-                    }
+                    public void onDragStart( float val, float totalFriction ) {}
 
                     @Override
                     public void onDrag( float val, float totalFriction ) {
@@ -80,8 +81,7 @@ public class MainActivity extends AppCompatActivity {
 
                 swipeAction.setSwipeActionListener( new SwipeActionListener() {
                     @Override
-                    public void onDragStart( float val, float totalFriction ) {
-                    }
+                    public void onDragStart( float val, float totalFriction ) {}
 
                     @Override
                     public void onDrag( float val, float friction ) {

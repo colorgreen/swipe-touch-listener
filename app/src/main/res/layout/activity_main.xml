@@ -14,25 +14,33 @@
         android:layout_marginTop="50dp"
         android:text="Expand top" />
 
-    <Button
-        android:id="@+id/collapse_button"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/expand_button"
-        android:text="Collapse top" />
-
     <LinearLayout
         android:id="@+id/bar"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="0dp"
         android:background="@color/lightblue"
+        android:orientation="vertical"
         android:padding="16dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="This is bar" />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="This is bar" />
+
+
+            <Button
+                android:id="@+id/collapse_button"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_alignParentBottom="true"
+                android:text="Collapse top" />
+
+        </RelativeLayout>
+
     </LinearLayout>
 
     <LinearLayout
@@ -41,7 +49,8 @@
         android:layout_height="match_parent"
         android:layout_alignParentBottom="true"
         android:background="@color/lightgreen"
-        android:padding="16dp">
+        android:padding="16dp"
+        android:translationY="1000dp">
 
         <TextView
             android:layout_width="wrap_content"

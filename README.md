@@ -19,11 +19,11 @@ allprojects {
 }
     
 dependencies {
-        implementation 'com.github.colorgreen:swipe-touch-listener:v1.0'
+        implementation 'com.github.colorgreen:swipe-touch-listener:v1.3'
 }
 ```
 
-### Implementation
+### Usage
 
 * First create listener
 ```
@@ -31,15 +31,28 @@ OnSwipeTouchListener listener = new OnSwipeTouchListener();
 ```
 * Then create SwipeAction
 ```
-SwipeAction swipeAction = new SwipeAction() {
-    @Override
-    public void onDrag( float val ) {
-        // for example
-        bar.setX( val );
-    }
-};
+SwipeAction swipeAction = new SwipeAction();
 ```
-You can override functions like onDragStart, onDrag and onDragEnd. onDragEnd is invoked only when val reach step.
+* Create listener
+```
+swipeAction.setSwipeActionListener( new SwipeActionListener() {
+    @Override
+    public void onDragStart( float val, float totalFriction ) {}
+
+    @Override
+    public void onDrag( float val, float friction ) {
+        bar.setLayoutParams( new RelativeLayout.LayoutParams( bar.getWidth(), (int) val ) );
+        bar.setBackgroundColor( interpolateColor( lightBlue, darkBlue, val / targetHeight ) );
+    }
+
+    @Override
+    public void onDragEnd( float val, float totalFriction ) {
+        // use setBlocked() for blocking another panels from extending
+        bottomSwipeAction.setBlocked( swipeAction.isExtended() );
+    }
+} );
+```
+You can override functions like onDragStart, onDrag and onDragEnd. onDragEnd is invoked only when ```val``` reach step.
 Set properties for action.
 ```
 swipeAction.setDirection( SwipeAction.DragDirection.Down );
@@ -61,13 +74,28 @@ listener.attachToView( view );
 view.setOnTouchListener( listener );
 ```
 
+#### Other functions
+
+* setBlocked( boolean )
+* pushToStep( int stepIndex )
+* expand()
+* collapse()
+* isExtended()
+
 ## Authors
 
 [@colorgreen](https://github.com/colorgreen)
 
 ## Version History
-
+* v1.3
+    * Swipe action is based now on listener
+    * Addes expand, collapse and pushToStep method which allow to control elements without swipe
+* v1.2
+    * Friction fix
 * v1.1
     * Added friction in onDrag
 * v1.0
     * Initial Release
+
+## Licence
+ Free to use
