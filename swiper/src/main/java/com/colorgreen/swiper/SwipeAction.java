@@ -11,6 +11,7 @@ public class SwipeAction {
     private static final float SLOW_FACTOR = 4.5f;
 
     public enum DragDirection {Right, Up, Left, Down}
+
     private DragDirection direction = DragDirection.Down;
 
     private float[] steps;
@@ -28,17 +29,25 @@ public class SwipeAction {
     private VelocityTracker velocityTracker;
     private MotionEvent startEvent;
 
-    public SwipeAction() { }
+    private SwipeActionListener swipeActionListener = null;
+
+    public SwipeAction() {
+    }
 
     /**
-     * @param direction default drag is DragDirection.Down
+     * @param direction     default drag is DragDirection.Down
      * @param steps
      * @param dragThreshold default threshold is 0.5f
      */
-    public SwipeAction( DragDirection direction, float[] steps, float dragThreshold ) {
+    public SwipeAction( DragDirection direction, float[] steps, float dragThreshold, SwipeActionListener listener ) {
         this.direction = direction;
         setSteps( steps );
         this.dragThreshold = dragThreshold;
+        this.swipeActionListener = listener;
+    }
+
+    public SwipeAction( SwipeActionListener swipeActionListener ) {
+        this.swipeActionListener = swipeActionListener;
     }
 
     public boolean onTouch( View v, MotionEvent event ) {
@@ -63,6 +72,19 @@ public class SwipeAction {
         return true;
     }
 
+    public void pushToStep( int stepIndex ){
+        final float nextStep = steps[stepIndex];
+        float velocity = ( steps[stepIndex] - lastPosition ) * SLOW_FACTOR;
+        pushToStep( nextStep, velocity );
+    }
+
+    public void expand(){
+        pushToStep( steps.length-1 );
+    }
+
+    public void collapse(){
+        pushToStep( 0 );
+    }
 
     /**
      * Set threshold above which drag is executed. If drag is shorter than threshold, drag is no executed
@@ -74,20 +96,15 @@ public class SwipeAction {
         this.dragThreshold = dragThreshold;
     }
 
-    public void onDragStart( float val, float totalFriction ) {}
-
-    public void onDrag( float val, float totalFriction ) {}
-
-    public void onDragEnd( float val, float totalFriction ) {}
-
     /**
      * Set values, which your drag respects. For direction Left and Up value have to be in descending
      * order. For direction Right and Down values have to be ascending.
      * Example for direction left: [ 0, -300, -600 ]
      * Watch out for using etc. view.getX() function in onCreate() of activity. It will propably return 0.
      * Use view.getViewTreeObserver() to obtain axis properties.
-     * @see <a href="https://stackoverflow.com/questions/3591784/views-getwidth-and-getheight-returns-0">stackoverflow.com</a>
+     *
      * @param steps Array in ascending or descending order, depends of direction.
+     * @see <a href="https://stackoverflow.com/questions/3591784/views-getwidth-and-getheight-returns-0">stackoverflow.com</a>
      */
     public void setSteps( float[] steps ) {
         checkSteps( steps );
@@ -113,11 +130,11 @@ public class SwipeAction {
         return isDragging;
     }
 
-    public boolean isExtended(){
+    public boolean isExtended() {
         return csIter > 0;
     }
 
-    public int getStep(){
+    public int getStep() {
         return csIter;
     }
 
@@ -127,6 +144,14 @@ public class SwipeAction {
 
     public void setBlocked( boolean blocked ) {
         this.blocked = blocked;
+    }
+
+    public SwipeActionListener getSwipeActionListener() {
+        return swipeActionListener;
+    }
+
+    public void setSwipeActionListener( SwipeActionListener swipeActionListener ) {
+        this.swipeActionListener = swipeActionListener;
     }
 
     ////////////////////////////////// PRIVATE FUNCTION ////////////////////////////////////////////
@@ -139,7 +164,9 @@ public class SwipeAction {
                 startEvent = MotionEvent.obtain( event );
             }
         } else {
-            onDragStart( currentStep, 0 );
+            if( swipeActionListener != null )
+                swipeActionListener.onDragStart( currentStep, 0 );
+
             currentStep = steps[csIter];
             startEvent = MotionEvent.obtain( event );
             isDragging = true;
@@ -149,44 +176,32 @@ public class SwipeAction {
 
     private void onMove( MotionEvent e1, MotionEvent e2 ) {
         final float diff = getDiff( e1, e2 ) + startPosition;
-        float friction = Math.abs( (lastPosition-steps[0])/(steps[steps.length-1]-steps[0]));
+        float friction = Math.abs( ( lastPosition - steps[0] ) / ( steps[steps.length - 1] - steps[0] ) );
+
+        boolean iOnDrag = false;
 
         if( direction == DragDirection.Left || direction == DragDirection.Up ) {
-            if( csIter + 1 == steps.length ) {
-                if( steps[csIter - 1] >= diff && diff >= steps[steps.length - 1] ) {
-                    onDrag( diff, friction );
-                    lastPosition = diff;
-                }
-            } else if( csIter == 0 ) {
-                if( steps[0] >= diff && diff >= steps[csIter + 1] ) {
-                    onDrag( diff, friction  );
-                    lastPosition = diff;
-                }
-            } else {
+            if( csIter + 1 == steps.length )
+                iOnDrag = steps[csIter - 1] >= diff && diff >= steps[steps.length - 1];
+            else if( csIter == 0 )
+                iOnDrag = steps[0] >= diff && diff >= steps[csIter + 1];
+            else
+                iOnDrag = steps[csIter - 1] >= diff && diff >= steps[csIter + 1];
 
-                if( steps[csIter - 1] >= diff && diff >= steps[csIter + 1] ) {
-                    onDrag( diff, friction  );
-                    lastPosition = diff;
-                }
-            }
         } else {
-            if( csIter + 1 == steps.length ) {
-                if( steps[csIter - 1] <= diff && diff <= steps[steps.length - 1] ) {
-                    onDrag( diff, friction  );
-                    lastPosition = diff;
-                }
-            } else if( csIter == 0 ) {
-                if( steps[0] <= diff && diff <= steps[csIter + 1] ) {
-                    onDrag( diff, friction  );
-                    lastPosition = diff;
-                }
-            } else {
+            if( csIter + 1 == steps.length )
+                iOnDrag = steps[csIter - 1] <= diff && diff <= steps[steps.length - 1];
+            else if( csIter == 0 )
+                iOnDrag = steps[0] <= diff && diff <= steps[csIter + 1];
+            else
+                iOnDrag = steps[csIter - 1] <= diff && diff <= steps[csIter + 1];
 
-                if( steps[csIter - 1] <= diff && diff <= steps[csIter + 1] ) {
-                    onDrag( diff, friction  );
-                    lastPosition = diff;
-                }
-            }
+        }
+
+        if( iOnDrag ) {
+            if( swipeActionListener != null )
+                swipeActionListener.onDrag( diff, friction );
+            lastPosition = diff;
         }
     }
 
@@ -195,7 +210,7 @@ public class SwipeAction {
     }
 
     private float getNextStep( float position, boolean checkThreshold ) {
-        float nextStep = 0;
+        float nextStep;
 
         if( direction == DragDirection.Left || direction == DragDirection.Up ) {
             if( csIter + 1 == steps.length ) {
@@ -254,6 +269,12 @@ public class SwipeAction {
         final float velocity = calculateVelocity( lastPosition + diff / SLOW_FACTOR );
         final float nextStep = getNextStep( lastPosition + velocity / SLOW_FACTOR );
 
+        pushToStep( nextStep, velocity );
+    }
+
+
+    private void pushToStep( final float nextStep, final float velocity ){
+
         FloatValueHolder floatValueHolder = new FloatValueHolder( lastPosition );
         flingAnimation = new FlingAnimation( floatValueHolder )
                 .setStartVelocity( velocity )
@@ -262,21 +283,24 @@ public class SwipeAction {
                     @Override
                     public void onAnimationUpdate( DynamicAnimation animation, float value, float velocity ) {
                         lastPosition = value;
-                        float friction = Math.abs( (lastPosition-steps[0])/(steps[steps.length-1]-steps[0]));
-                        onDrag( value, friction  );
+                        float friction = Math.abs( ( lastPosition - steps[0] ) / ( steps[steps.length - 1] - steps[0] ) );
+                        if( swipeActionListener != null )
+                            swipeActionListener.onDrag( value, friction );
                     }
                 } )
                 .addEndListener( new DynamicAnimation.OnAnimationEndListener() {
                     @Override
                     public void onAnimationEnd( DynamicAnimation animation, boolean canceled, float value, float velocity ) {
                         lastPosition = value;
-                        float friction = Math.abs( (lastPosition-steps[0])/(steps[steps.length-1]-steps[0]));
-                        onDrag( value, friction  );
+                        float friction = Math.abs( ( lastPosition - steps[0] ) / ( steps[steps.length - 1] - steps[0] ) );
+                        if( swipeActionListener != null )
+                            swipeActionListener.onDrag( value, friction );
 
                         if( !canceled ) {
                             csIter = getStepIndex( nextStep );
                             isDragging = false;
-                            onDragEnd( nextStep, 1 );
+                            if( swipeActionListener != null )
+                                swipeActionListener.onDragEnd( nextStep, 1 );
                         }
                     }
                 } );
@@ -287,7 +311,6 @@ public class SwipeAction {
         flingAnimation.setMinValue( _min ).setMaxValue( _max );
         flingAnimation.start();
     }
-
 
     private float getDiff( MotionEvent e1, MotionEvent e2 ) {
         if( direction == DragDirection.Up || direction == DragDirection.Down )

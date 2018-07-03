@@ -21,12 +21,12 @@ public class OnSwipeTouchListener implements OnTouchListener {
 
         if( actions.size() == 0 ) return false;
 
-        for( SwipeAction a : actions) {
-            if( a.isExtended() ){
-                a.onTouch( v, event );
-                return true;
-            }
-        }
+//        for( SwipeAction a : actions) {
+//            if( a.isExtended() ){
+//                a.onTouch( v, event );
+//                return true;
+//            }
+//        }
 
         for( SwipeAction action : actions ) {
             if( action.isBlocked() ) continue;

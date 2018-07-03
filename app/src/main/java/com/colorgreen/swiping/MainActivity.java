@@ -4,12 +4,15 @@ import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.view.ViewTreeObserver;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.colorgreen.swiper.OnSwipeTouchListener;
 import com.colorgreen.swiper.SwipeAction;
+import com.colorgreen.swiper.SwipeActionListener;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -22,6 +25,10 @@ public class MainActivity extends AppCompatActivity {
     LinearLayout bar;
     @BindView( R.id.bottombar )
     LinearLayout bottombar;
+    @BindView( R.id.expand_button )
+    Button expandButton;
+    @BindView( R.id.collapse_button)
+    Button collapseButton;
 
     @Override
     protected void onCreate( Bundle savedInstanceState ) {
@@ -43,43 +50,63 @@ public class MainActivity extends AppCompatActivity {
                 int startBarHeight = bar.getHeight();
                 final int targetHeight = mainLayout.getHeight();
 
-                SwipeAction swipeAction = new SwipeAction() {
-                    @Override
-                    public void onDrag( float val, float friction ) {
-                        bar.setLayoutParams( new RelativeLayout.LayoutParams( bar.getWidth(), (int) val ) );
-                        bar.setBackgroundColor( interpolateColor( lightBlue, darkBlue, val / targetHeight ) );
-                        Log.d("driction", ""+friction);
-                    }
-                };
-
+                final SwipeAction swipeAction = new SwipeAction();
                 swipeAction.setDirection( SwipeAction.DragDirection.Down );
                 swipeAction.setDragThreshold( 0.4f );
                 swipeAction.setSteps( new float[]{ startBarHeight, targetHeight * 0.3f, targetHeight } );
 
-                listener.addAction( swipeAction );
-            }
-        } );
-
-        bottombar.getViewTreeObserver().addOnGlobalLayoutListener( new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                bottombar.getViewTreeObserver().removeOnGlobalLayoutListener( this );
-
-                int targetHeight = mainLayout.getHeight();
                 bottombar.setY( targetHeight );
+                final SwipeAction bottomSwipeAction = new SwipeAction();
+                bottomSwipeAction.setDirection( SwipeAction.DragDirection.Up );
+                bottomSwipeAction.setDragThreshold( 0.2f );
+                bottomSwipeAction.setSteps( new float[]{ targetHeight, targetHeight - targetHeight * 0.7f, 0 } );
 
-                final SwipeAction swipeAction = new SwipeAction() {
+                bottomSwipeAction.setSwipeActionListener( new SwipeActionListener() {
                     @Override
-                    public void onDrag( float val, float friction ) {
+                    public void onDragStart( float val, float totalFriction ) {
+
+                    }
+
+                    @Override
+                    public void onDrag( float val, float totalFriction ) {
                         bottombar.setY( val );
                     }
-                };
 
-                swipeAction.setDirection( SwipeAction.DragDirection.Up );
-                swipeAction.setDragThreshold( 0.2f );
-                swipeAction.setSteps( new float[]{ targetHeight, targetHeight - targetHeight * 0.7f, 0 } );
+                    @Override
+                    public void onDragEnd( float val, float totalFriction ) {
+                        swipeAction.setBlocked( bottomSwipeAction.isExtended() );
+                    }
+                } );
+
+                swipeAction.setSwipeActionListener( new SwipeActionListener() {
+                    @Override
+                    public void onDragStart( float val, float totalFriction ) {
+                    }
+
+                    @Override
+                    public void onDrag( float val, float friction ) {
+                        bar.setLayoutParams( new RelativeLayout.LayoutParams( bar.getWidth(), (int) val ) );
+                        bar.setBackgroundColor( interpolateColor( lightBlue, darkBlue, val / targetHeight ) );
+                    }
+
+                    @Override
+                    public void onDragEnd( float val, float totalFriction ) {
+                        bottomSwipeAction.setBlocked( swipeAction.isExtended() );
+                    }
+                } );
 
                 listener.addAction( swipeAction );
+                listener.addAction( bottomSwipeAction );
+
+                expandButton.setOnClickListener( v -> {
+                    if( !swipeAction.isBlocked() )
+                        swipeAction.expand();
+                } );
+
+                collapseButton.setOnClickListener( v -> {
+                        if( !swipeAction.isBlocked() )
+                            swipeAction.collapse();
+                } );
             }
         } );
 
