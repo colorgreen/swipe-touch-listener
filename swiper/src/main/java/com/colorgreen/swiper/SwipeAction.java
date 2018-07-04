@@ -314,8 +314,8 @@ public class SwipeAction {
 
     private float getDiff( MotionEvent e1, MotionEvent e2 ) {
         if( direction == DragDirection.Up || direction == DragDirection.Down )
-            return e2.getY() - e1.getY();
-        return e2.getX() - e1.getX();
+            return e2.getRawY() - e1.getRawY();
+        return e2.getRawX() - e1.getRawX();
     }
 
     private int getStepIndex( float val ) {
