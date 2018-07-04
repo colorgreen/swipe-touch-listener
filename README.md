@@ -87,6 +87,9 @@ view.setOnTouchListener( listener );
 [@colorgreen](https://github.com/colorgreen)
 
 ## Version History
+* v1.4
+    * Changed to raw axis (no problem on moving panel with attached OnSwipeTouchListener)
+    * javadoc support 
 * v1.3
     * Swipe action is based now on listener
     * Addes expand, collapse and pushToStep method which allow to control elements without swipe
